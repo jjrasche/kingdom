@@ -1,0 +1,26 @@
+{
+  "name": "kingdom",
+  "version": "1.0.0",
+  "description": "Recreation of the phone game Antiyoy for the browser, with the goal to train reinforcement learning algorithm on it.",
+  "main": "index.ts",
+  "scripts": {
+    "test": "jest",
+    "build": "tsc",
+    "watch": "tsc -w",
+    "start": "http-server ./"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jjrasche/kingdom.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jjrasche/kingdom/issues"
+  },
+  "homepage": "https://github.com/jjrasche/kingdom#readme",
+  "devDependencies": {
+    "typescript": "^4.4.2",
+    "http-server": "^13.0.1"
+  }
+}
