@@ -1,14 +1,10 @@
+import { render } from "./render.js";
 export let CANVAS;
 export let CTX;
 function startGame() {
-    // test
-    var t = 5;
     initCanvas();
     setCanvasDimensions();
-    CTX.beginPath(); // Start a new path
-    CTX.moveTo(30, 50); // Move the pen to (30, 50)
-    CTX.lineTo(150, 100); // Draw a line to (150, 100)
-    CTX.stroke(); // Render the path
+    render();
 }
 function initCanvas() {
     CANVAS = document.getElementById("canvas");
@@ -22,4 +18,4 @@ function setCanvasDimensions() {
     CANVAS.height = Math.floor(window.innerHeight * window.devicePixelRatio);
 }
 startGame();
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=main.js.map
