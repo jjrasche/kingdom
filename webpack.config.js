@@ -20,15 +20,6 @@ module.exports = {
         filename: "main.js",
         path: path.resolve(__dirname, "dist"),
     },
-    plugins: [new HtmlWebpackPlugin({
-        title: 'hex game',
-        templateContent: `
-            <html>
-            <body>
-                <canvas id="canvas"></canvas>
-            </body>
-            </html>
-        `
-    })],
+    plugins: [new HtmlWebpackPlugin({title: 'hex game'})],
     mode: "development"
 };
