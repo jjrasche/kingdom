@@ -4,9 +4,7 @@
   "description": "Recreation of the phone game Antiyoy for the browser, with the goal to train reinforcement learning algorithm on it.",
   "scripts": {
     "test": "jest",
-    "build": "tsc",
-    "watch": "tsc -w",
-    "start": "http-server ./"
+    "start": "webpack serve --open --config webpack.config.js"
   },
   "repository": {
     "type": "git",
@@ -19,7 +17,16 @@
   },
   "homepage": "https://github.com/jjrasche/kingdom#readme",
   "devDependencies": {
+    "copy-webpack-plugin": "^9.0.1",
+    "html-webpack-plugin": "^5.3.2",
+    "http-server": "^13.0.1",
+    "ts-loader": "^9.2.5",
     "typescript": "^4.4.2",
-    "http-server": "^13.0.1"
+    "webpack": "^5.52.0",
+    "webpack-cli": "^4.8.0",
+    "webpack-dev-server": "^4.1.1"
+  },
+  "dependencies": {
+    "phaser": "^3.55.2"
   }
 }

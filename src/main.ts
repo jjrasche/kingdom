@@ -1,4 +1,4 @@
-import { render } from "./render.js";
+import { render } from "./render";
 
 export let CANVAS: HTMLCanvasElement;
 export let CTX: CanvasRenderingContext2D;

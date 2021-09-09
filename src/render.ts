@@ -1,11 +1,15 @@
-import { CTX } from "./main.js";
+import { CTX } from "./main";
 /*
     goals
     - rener hex grid
     - apply state to hex grid
+
+    from: 
+        - https://www.emanueleferonato.com/tag/hexagonal-tiles/
 */
 
 export function render() {
+    const hexPositions = 
     drawHexGrid(500, 500);
 }
 
