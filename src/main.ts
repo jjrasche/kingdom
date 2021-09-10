@@ -56,9 +56,14 @@
 // new Game(configObject);
 
 import { Game, GameObjects, Scale, Scene, Types } from 'phaser';
+import { Grid } from './models/grid';
+import { Hex, HexType } from './models/hex';
+import { State } from './models/state';
 
 class PlayGame extends Scene {
-	private controls!: Phaser.Cameras.Controls.SmoothedKeyControl
+    private controls!: Phaser.Cameras.Controls.SmoothedKeyControl
+    private state: State = new State();
+
     constructor() {
         super("PlayGame");
     }
@@ -67,40 +72,100 @@ class PlayGame extends Scene {
     create(): void {
         // var g2 = this.add.grid(300, 340, window.outerWidth, window.outerHeight, 30, 30, 0x00b9f2).setAltFillStyle(0x016fce).setOutlineStyle();
         // this.gridContainer = this.add.container(100, 100)
-        this.cameras.main.setBounds(0, 0, 1024, 2048);    
+        this.cameras.main.setBounds(0, 0, 1024, 2048);
         this.cameras.main.setZoom(2);
         this.cameras.main.centerOn(0, 0);
-        this.drawHexGrid(8, 8, 50);
+        
+        this.createRandomMap();
+        this.drawHexGrid();
 
         const cursors = this.input.keyboard.createCursorKeys()
-		this.controls = new Phaser.Cameras.Controls.SmoothedKeyControl({
-			camera: this.cameras.main,
-			left: cursors.left,
-			right: cursors.right,
-			up: cursors.up,
-			down: cursors.down,
-			zoomIn: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q),
-			zoomOut: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E),
-			acceleration: 0.06,
-			drag: 0.0005,
-			maxSpeed: 1.0
-		})
+        this.controls = new Phaser.Cameras.Controls.SmoothedKeyControl({
+            camera: this.cameras.main,
+            left: cursors.left,
+            right: cursors.right,
+            up: cursors.up,
+            down: cursors.down,
+            zoomIn: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.MINUS),
+            zoomOut: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.PLUS),
+            acceleration: 0.06,
+            drag: 0.0005,
+            maxSpeed: 1.0
+        })
 
     }
-	update(time: number, deltaTime: number)
-	{
-		this.controls.update(deltaTime)
-	}
+    update(time: number, deltaTime: number) {
+        this.controls.update(deltaTime)
+    }
 
-    private drawHexGrid(width: number, height: number, hexSize: number) {
-        var defaultHexColor = 0xffffff;
+    private createRandomMap() {
+        this.state.grid = new Grid(10, 10);
+        for (let x = 0; x < this.state.grid.width; x++) {
+            this.state.grid.Hexes[x] = [];
+            for (let y = 0; y < this.state.grid.height; y++) {
+                this.state.grid.Hexes[x][y] = new Hex(x, y, this.getHexType(x, y));
+            }
+        }
+    }
+
+    /*
+        height = 5
+        y   ret
+        0   0
+        1   1
+        2   2
+        3   2
+        4   1
+        5   0
+        ret = |y - height|
+    */
+    private getSpacesFromOutside(x: number, y: number): number {
+        const verticalDistance = y < (this.state.grid.height / 2) ? y : Math.abs(this.state.grid.height - y);  
+        const horizontalDistance = x < (this.state.grid.width / 2) ? x : Math.abs(this.state.grid.width - x);  
+        return Math.min(verticalDistance, horizontalDistance)
+    }
+
+    private getHexType(x: number, y: number) {
+        const spacesToOutside = this.getSpacesFromOutside(x, y);
+        let chanceLand;
+        switch (spacesToOutside) {
+            case 0:
+                chanceLand = 0;
+                break;
+            case 1:
+                chanceLand = .3;
+                break;
+            case 2:
+                chanceLand = .4;
+                break;
+            case 3:
+                chanceLand = .6;
+                break;
+            case 4:
+                chanceLand = .8;
+                break;
+            case 5:
+                chanceLand = .9;
+                break;
+            default:
+                chanceLand = .95;
+        }
+        return Math.random() < chanceLand ? HexType.Land : HexType.Water;
+    }
+
+    private drawHexGrid() {
+        // https://mobsor.com/blog/2020/06/creating-an-interactive-hexagon-grid-in-phaser/
+        var hexSize = 50;
+        var landHexColor = 0x49D163;
+        var waterHexColor = 0x7CADD7;
         var selectedHexColor = 0x3000ff;
         var lineColor = 0xef15ff;
         var lineWidth = 1;
         const longestDiagonal = this.getLongestDiagonal(hexSize);
         let hexCoords: number[] = this.getHexCoords(hexSize);
-        for (let x: number = 0; x <= width - 1; x++) {
-            for (let y: number = 0; y <= height - 1; y++) {
+        for (let x: number = 0; x <= this.state.grid.width - 1; x++) {
+            for (let y: number = 0; y <= this.state.grid.height - 1; y++) {
+                var hexData = this.state.grid.Hexes[x][y];
                 // TODO: some of the edges aren't ligning up, I think due to floating point accuracy of the engine.
                 let hexX = x * longestDiagonal              // move right to colum x
                     - x * longestDiagonal / 4               // move back to align top left-side with previous hex's bottom-right side
@@ -108,17 +173,19 @@ class PlayGame extends Scene {
                 // let hexX = x * hexSize - (x * (hexSize / 9));
 
                 let hexY = y * hexSize                      // move down to row y
-                    + (x %   2 === 1 ? hexSize / 2 : 0)     // move down half row every other column
+                    + (x % 2 === 1 ? hexSize / 2 : 0)     // move down half row every other column
                     + (y * (lineWidth));                    // move down for every line width between row
 
-                let hex1 = this.add.polygon(hexX, hexY, hexCoords, defaultHexColor).setOrigin(0, 0);
+                let hexColor = hexData.type === HexType.Land ? landHexColor : waterHexColor;
+                let hex1 = this.add.polygon(hexX, hexY, hexCoords, hexColor).setOrigin(0, 0);
                 hex1.setStrokeStyle(lineWidth, 0xefc53f);
                 hex1.setData('painted', false);
+                hex1.setData('color', hexColor);
                 hex1.setInteractive({ cursor: 'pointer' }).on('pointerdown', () => {
                     console.log('click x:' + x + ' y:' + y);
                     hex1.data.values.painted = !hex1.data.values.painted;
                     hex1.setStrokeStyle(20, lineColor);
-                    hex1.setFillStyle(hex1.data.values.painte ? selectedHexColor : defaultHexColor);
+                    hex1.setFillStyle(hex1.data.values.painted ? selectedHexColor : hexColor);
                 }).on('pointerup', () => {
                     hex1.setStrokeStyle(lineWidth, 0xefc53f);
                 });
@@ -161,74 +228,3 @@ let configObject: Phaser.Types.Core.GameConfig = {
 };
 
 new Phaser.Game(configObject);
-
-
-
-
-
-
-
-// class HexGridScene extends Phaser.Scene {
-//     private gridContainer: Phaser.GameObjects.Container;
-//     constructor() {
-//         console.log('construct hex grid scene')
-//         super({
-//             key: 'HexGridScene'
-//         });
-//     }
-//     preload() {
-//         //nothing to preload
-//     }
-//     create() {
-//         this.gridContainer = this.add.container(75, 75)
-//         let menuItem: Phaser.GameObjects.Text = this.add.text(15, 10, "Home",
-//             { fontFamily: 'Verdana, "Times New Roman", Tahoma, serif', fontSize: "25", color: '#3333ff' });
-//         menuItem.setInteractive({ cursor: 'pointer' }).on('pointerdown', () => {
-//             window.history.replaceState({}, 'Phaser 3 Examples', './');
-//             this.scene.start('MenuScene');
-//         });
-//         menuItem.setScrollFactor(0)
-//         //Draw a 5 by 8 grid of 75 width hexagons at 5,5 - They will be placed in the gridContainer so will be at 80,80
-//         this.drawHexGrid(8, 8, 75, 5, 5);
-//     }
-//     drawHexGrid(width: number, height: number, hexHeight: number, startX: number = 0, startY: number = 0) {
-//         let hexCoords: number[] = this.getHexCoords(hexHeight);
-//         for (let x: number = 0; x <= width - 1; x++) {
-//             for (let y: number = 0; y <= height - 1; y++) {
-//                 let hexX = x * hexHeight - (x * (hexHeight / 9));
-//                 let hexY = y * hexHeight + (y * 2);
-//                 if (x % 2 === 1) {
-//                     hexY += hexHeight / 2;
-//                 }
-//                 let hex1 = this.add.polygon(hexX + startX, hexY + startY, hexCoords, 0xffffff);
-//                 hex1.setStrokeStyle(1, 0xefc53f);
-//                 hex1.setData('painted', false);
-//                 hex1.setInteractive({ cursor: 'pointer' }).on('pointerdown', () => {
-//                     console.log('click x:' + x + ' y:' + y);
-//                     hex1.setStrokeStyle(2, 0xef15ff);
-//                     hex1.data.values.painted = !hex1.data.values.painted;
-//                     if (hex1.data.values.painted) {
-//                         hex1.setFillStyle(0x3000ff)
-//                     } else {
-//                         hex1.setFillStyle(0xffffff)
-//                     }
-//                 }).on('pointerup', () => {
-//                     console.log('mouse up');
-//                     hex1.setStrokeStyle(1, 0xefc53f);
-//                 });
-//                 this.gridContainer.add(hex1);
-//             }
-//         }
-//     }
-//     getHexCoords(height: number): number[] {
-//         //http://csharphelper.com/blog/2015/10/draw-a-hexagonal-grid-in-c/
-//         let width: number = (4 * (height / 2 / Math.sqrt(3)));
-//         let y: number = height / 2;
-//         let hexCoords: number[] = [
-//             0, y, width * 0.25, y - height / 2, width * 0.75,
-//             y - height / 2, width, y, width * 0.75, y + height / 2,
-//             width * 0.25, y + height / 2];
-//         return hexCoords;
-//     }
-// }
-// export default HexGridScene;
