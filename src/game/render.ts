@@ -13,7 +13,7 @@ export function renderGrid(state: State, scene: Scene) {
     let hexCoords: number[] = getHexCoords(state.grid.hexSize);
     for (let x: number = 0; x <= state.grid.width - 1; x++) {
         for (let y: number = 0; y <= state.grid.height - 1; y++) {
-            var hexData = state.grid.Hexes[x][y];
+            var hexData = state.grid.hexes[x][y];
             // TODO: some of the edges aren't ligning up, I think due to floating point accuracy of the engine.
             let hexX = x * longestDiagonal              // move right to colum x
                 - x * longestDiagonal / 4               // move back to align top left-side with previous hex's bottom-right side

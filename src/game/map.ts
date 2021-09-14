@@ -1,11 +1,12 @@
+import { Grid, inBounds } from "../models/grid";
 import { Hex, HexType } from "../models/hex";
 import { State } from "../models/state";
 
 export function createRandomMap(state: State) {
     for (let x = 0; x < state.grid.width; x++) {
-        state.grid.Hexes[x] = [];
+        state.grid.hexes[x] = [];
         for (let y = 0; y < state.grid.height; y++) {
-            state.grid.Hexes[x][y] = new Hex(x, y, getHexType(state, x, y));
+            state.grid.hexes[x][y] = new Hex(x, y, getHexType(state, x, y));
         }
     }
 }
@@ -17,20 +18,49 @@ export function getSpacesFromOutside(state: State, x: number, y: number): number
     return Math.min(verticalDistance, horizontalDistance)
 }
 
-// export function getMainContinentHexes(state: State): Hex[] {
-//     // start in middle, find first hex that is land, recursively traverse every connecting hex until each hex is in array or all remaining hexes are water
-//     // find middle land hex
-//     var middleLandHex =  
-// }
+/*
+    recursively push out in every direction from a single hex
+    - 
+*/
+export function getConectedHexGroupsByType(state: State): Hex[][] {
+    let groupedHexes: Hex[][] = [];
+    while (groupedHexes.flat().length < state.grid.hexes.flat().length) {
+        const ungroupedHex = state.grid.hexes.flat().find(hex => !groupedHexes.flat().includes(hex));
+        if (!ungroupedHex) {
+            continue;
+        }
+        const connectedGroup = getAllHexesConnectedToByType(state.grid, ungroupedHex.x, ungroupedHex.y, ungroupedHex.type);
+        groupedHexes.push(connectedGroup);
+    }
+    return groupedHexes;
+}
 
-// export function getLandHexClosestToMiddle(state: State): Hex {
-//     var x = state.grid.width / 2;
-//     var y = state.grid.height / 2;
-//     var hex = state.grid.Hexes[x][y];
-//     while (hex.type === HexType.Water) {
-//         hex = 
-//     }
-// }
+/*
+    termination condition: if type != hex.type
+*/
+function getAllHexesConnectedToByType(grid: Grid, x: number, y: number, type: HexType, connectedHexes: Hex[] = []): Hex[] {
+    try {
+        if (!inBounds(grid, x, y)) {
+            return []
+        }
+        const hex = grid.hexes[x][y];
+        if (!hex || hex.type != type || connectedHexes.includes(hex)) {
+            return [];
+        }
+        connectedHexes.push(hex);
+        var topLeft = getAllHexesConnectedToByType(grid, x - 1, y, type, connectedHexes);
+        var top = getAllHexesConnectedToByType(grid, x, y -1, type, connectedHexes);
+        var topRight = getAllHexesConnectedToByType(grid, x + 1, y, type, connectedHexes);
+        var bottomRight = getAllHexesConnectedToByType(grid, x + 1, y + 1, type, connectedHexes);
+        var bottom = getAllHexesConnectedToByType(grid, x, y + 1, type, connectedHexes);
+        var bottomLeft = getAllHexesConnectedToByType(grid, x - 1, y + 1, type, connectedHexes);
+        var all = topLeft.concat(top).concat(topRight).concat(bottomRight).concat(bottom).concat(bottomLeft).concat([hex]);
+        return all;
+    } catch(e) {
+        console.log(e);
+    }
+    return [];
+}
 
 // export function const findHexSearchingInCircularPattern(state: State, startX: number, startY: number, )
 

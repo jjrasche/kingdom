@@ -1,5 +1,14 @@
 import { ItemType } from "./item";
 
+export function sortHex(a: Hex, b: Hex): number {
+    if (a.x < b.x) {
+        return -1;
+    } else if (a.y < b.y) {
+        return -1;
+    } 
+    return 0;
+} 
+
 export enum HexType {
     Land,
     Water
