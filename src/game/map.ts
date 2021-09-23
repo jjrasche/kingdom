@@ -43,7 +43,7 @@ function getAllHexesConnectedToByType(grid: Grid, x: number, y: number, type: He
         if (!inBounds(grid, x, y)) {
             return []
         }
-        const hex = grid.hexes[x][y];
+        const hex = grid.hexes[y][x];
         if (!hex || hex.type != type || connectedHexes.includes(hex)) {
             return [];
         }

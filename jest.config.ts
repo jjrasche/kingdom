@@ -9,5 +9,6 @@ module.exports = {
   "transform": {
     "^.+\\.(ts|tsx)$": "ts-jest"
   },
-  "verbose": false
+  "verbose": false,
+  "silent": false
 }

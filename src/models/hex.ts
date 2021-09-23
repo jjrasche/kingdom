@@ -1,12 +1,18 @@
 import { ItemType } from "./item";
 
-export function sortHex(a: Hex, b: Hex): number {
-    if (a.x < b.x) {
+export function sortHexArray(a: Hex, b: Hex): number {
+    if (a.x != b.x) {
+        return a.x - b.x;
+    } else {
+        return a.y - b.y;
+    }
+}
+
+export function sort2DHexArray(a: Hex[], b: Hex[]): number {
+    if (a.length < b.length) {
         return -1;
-    } else if (a.y < b.y) {
-        return -1;
-    } 
-    return 0;
+    }
+    return sortHexArray(a[0], b[0]);
 } 
 
 export enum HexType {
