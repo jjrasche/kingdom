@@ -7,9 +7,12 @@
 */
 import { Scene } from 'phaser';
 import { configObject, createControls } from './config';
-import { createRandomMap } from './game/map';
+import { createRandomMap, getConectedHexGroupsByType } from './game/map';
+import { testGrid } from './game/map.spec.data';
 import { initializePlayers } from './game/player';
 import { renderGrid } from './game/render';
+import { Grid } from './models/grid';
+import { HexType } from './models/hex';
 import { State } from './models/state';
 
 export let state: State = new State();
@@ -21,12 +24,27 @@ class PlayGame extends Scene {
         super("PlayGame");
     }
     preload(): void {
+        // this.load.bitmapFont("font", undefined, "assets/ScheherazadeNew-Regular.ttf")
+        this.load.bitmapFont('desyrel', 'assets/desyrel.png', 'assets/desyrel.xml');
+
     }
-    create(): void {     
-        createRandomMap(state);
-        renderGrid(state, this);
+    async create(): Promise<void> {     
+        state.scene = this;
+        createRandomMap(new Grid());
+        // let print = "";
+        // state.grid.hexes.forEach(row => {
+        //    row.forEach((hex, idx) => {
+        //        print += hex.type === HexType.Land ? "|" : "~";
+        //    });
+        //    print += "\n";
+        // });
+        // console.log(print);
+        // console.log(JSON.stringify(state.grid));
+        state.grid = testGrid;
+        renderGrid(state);
         initializePlayers(state);
         this.controls = createControls(this);
+        const t = await getConectedHexGroupsByType(state.grid);
     }
     update(time: number, deltaTime: number) {
         this.controls.update(deltaTime)

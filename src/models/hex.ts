@@ -28,6 +28,7 @@ export class Hex {
     visibleTo: number[] = [];
     ownedBy: number | undefined;
     item: ItemType | undefined;
+    gameObject?: Phaser.GameObjects.Polygon;
 
     constructor(x: number, y: number, type: HexType, discoveredBy: number[] = [], visibleTo: number[] = [], ownedBy?: number, item?: ItemType) {
         this.x = x;

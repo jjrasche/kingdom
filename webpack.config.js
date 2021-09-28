@@ -1,5 +1,6 @@
 const path = require("path");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     entry: "./src/main.ts",
@@ -20,6 +21,13 @@ module.exports = {
         filename: "main.js",
         path: path.resolve(__dirname, "dist"),
     },
-    plugins: [new HtmlWebpackPlugin({title: 'hex game'})],
+    plugins: [
+        new HtmlWebpackPlugin({title: 'hex game'}),
+        new CopyWebpackPlugin({
+            patterns: [
+                { from: 'src/assets', to: 'assets' },
+            ]
+        })    
+    ],
     mode: "development"
 };
