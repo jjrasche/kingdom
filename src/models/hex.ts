@@ -39,4 +39,8 @@ export class Hex {
         this.ownedBy = ownedBy;
         this.item = item;
     }
+
+    set color(color: number) {
+        this.gameObject?.setFillStyle(color);
+    }
 }

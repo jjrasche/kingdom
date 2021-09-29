@@ -12,3 +12,5 @@ module.exports = {
   "verbose": false,
   "silent": false
 }
+
+jest.setTimeout(60000);

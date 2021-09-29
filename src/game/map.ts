@@ -1,16 +1,15 @@
-import { state } from "../main";
 import { Grid, inBounds } from "../models/grid";
 import { Hex, HexType } from "../models/hex";
-import { State } from "../models/state";
 
 
-export function createRandomMap(grid: Grid) {
+export async function createRandomMap(grid: Grid) {
     for (let y = 0; y < grid.height; y++) {
         grid.hexes[y] = [];
         for (let x = 0; x < grid.width; x++) {
             grid.hexes[y][x] = new Hex(x, y, getHexType(grid, x, y));
         }
     }
+    grid.connectedHexes = await getConectedHexGroupsByType(grid);
 }
 
 export function getSpacesFromOutside(grid: Grid, x: number, y: number): number {
@@ -37,13 +36,13 @@ export async function getConectedHexGroupsByType(grid: Grid): Promise<Hex[][]> {
         }
         hex.push(ungroupedHex);
         const randomColorString = '0x'+(Math.random() * 0xFFFFFF << 0).toString(16).padStart(6, '0');
-        const randomColor = Phaser.Display.Color.HexStringToColor(randomColorString).color;
+        // const randomColor = Phaser.Display.Color.HexStringToColor(randomColorString).color;
         // const connectedGroup = getAllHexesConnectedToByType(grid, ungroupedHex.x, ungroupedHex.y, ungroupedHex.type, [], randomColor);
-        const connectedGroup = await getAllHexesConnectedToByType2(grid, ungroupedHex, randomColor);
-        console.log(`x: ${ungroupedHex.x} y: ${ungroupedHex.y}, ${randomColorString}  ${connectedGroup.length}\n\t${JSON.stringify(connectedGroup.map(cg => [cg.x, cg.y]))}`);
+        const connectedGroup = await getAllHexesConnectedToByType2(grid, ungroupedHex);
+        // console.log(`x: ${ungroupedHex.x} y: ${ungroupedHex.y}, ${randomColorString}  ${connectedGroup.length}\n\t${JSON.stringify(connectedGroup.map(cg => [cg.x, cg.y]))}`);
         groups.push(connectedGroup);
     }
-    console.log(`${groups.flat().length} vs. ${grid.hexes.flat().length}`);
+    // console.log(`${groups.flat().length} vs. ${grid.hexes.flat().length}`);
     return groups;
 }
 
@@ -64,7 +63,7 @@ export async function getConectedHexGroupsByType(grid: Grid): Promise<Hex[][]> {
                 5,5 6,5 7,5
                     6,6
 */
-async function getAllHexesConnectedToByType2(grid: Grid, hex: Hex, label: number): Promise<Hex[]> {
+async function getAllHexesConnectedToByType2(grid: Grid, hex: Hex, label: number = 100000): Promise<Hex[]> {
     // return [];
     let unSearchedHexes: Hex[] = [];
     let groupedHexes: Hex[] = [];
@@ -96,23 +95,20 @@ async function getAllHexesConnectedToByType2(grid: Grid, hex: Hex, label: number
                 && !unSearchedHexes.includes(h)
         }) as Hex[];
         unSearchedHexes = unSearchedHexes.concat(matchingSearches);
-        await (new Promise(resolve => setTimeout(resolve, 10))).then(() => {
-            focusedHex.gameObject?.setFillStyle(label)
-        });
+        // await (new Promise(resolve => setTimeout(resolve, 10))).then(() => focusedHex.color = label );
 
-        console.log(`x: ${focusedHex.x} y: ${focusedHex.y}\n${unSearchedHexes.length}\n${groupedHexes.length}
-            topLeft(${JSON.stringify(topLeftCoords)}) (${!!topLeft}): ${matchingSearches.includes(topLeft)}
-            top(${JSON.stringify(topCoords)}) (${!!top}): ${matchingSearches.includes(top)}
-            topRight(${JSON.stringify(topRightCoords)}) (${!!topRight}): ${matchingSearches.includes(topRight)}
-            bottomRight(${JSON.stringify(bottomRightCoords)}) (${!!bottomRight}): ${matchingSearches.includes(bottomRight)}
-            bottom(${JSON.stringify(bottomCoords)}) (${!!bottom}): ${matchingSearches.includes(bottom)}
-            bottomLeft(${JSON.stringify(bottomLeftCoords)}) (${!!bottomLeft}): ${matchingSearches.includes(bottomLeft)}
-        `);
+        // console.log(`x: ${focusedHex.x} y: ${focusedHex.y}\n${unSearchedHexes.length}\n${groupedHexes.length}
+        //     topLeft(${JSON.stringify(topLeftCoords)}) (${!!topLeft}): ${matchingSearches.includes(topLeft)}
+        //     top(${JSON.stringify(topCoords)}) (${!!top}): ${matchingSearches.includes(top)}
+        //     topRight(${JSON.stringify(topRightCoords)}) (${!!topRight}): ${matchingSearches.includes(topRight)}
+        //     bottomRight(${JSON.stringify(bottomRightCoords)}) (${!!bottomRight}): ${matchingSearches.includes(bottomRight)}
+        //     bottom(${JSON.stringify(bottomCoords)}) (${!!bottom}): ${matchingSearches.includes(bottom)}
+        //     bottomLeft(${JSON.stringify(bottomLeftCoords)}) (${!!bottomLeft}): ${matchingSearches.includes(bottomLeft)}
+        // `);
         // setTimeout(function(hex: Hex) {
         //     hex.gameObject?.setFillStyle(label);
         // }, 50000, focusedHex);
     }
-    // groupedHexes.forEach(h => h.gameObject?.setFillStyle(label));
     return groupedHexes;
 }
 

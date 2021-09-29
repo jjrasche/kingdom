@@ -1,3 +1,5 @@
+import { PlayerColors } from "./colors";
+
 export enum PlayerType {
     Human,
     RandomLogic,
@@ -5,18 +7,16 @@ export enum PlayerType {
     AI
 } 
 
-const playerColors = ["0x2933AF", "0xF51C1C"]
-
 export class Player {
     id: number;
     type: PlayerType;
-    color: string;
+    color: number;
     alive = true;
 
     constructor(id: number, type: PlayerType = PlayerType.BestLogic) {
         this.id = id;
         this.type = type;
-        this.color = playerColors[id];
+        this.color = PlayerColors[id];
     }
 
 }
