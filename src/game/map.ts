@@ -1,5 +1,6 @@
+import { randomBetween } from "../helpers/number";
 import { Grid, inBounds } from "../models/grid";
-import { Hex, HexType } from "../models/hex";
+import { top, bottom, bottomLeft, bottomRight, Hex, HexType, topLeft, topRight, getRandomAttachedHexOfSameType } from "../models/hex";
 
 
 export async function createRandomMap(grid: Grid) {
@@ -73,31 +74,25 @@ async function getAllHexesConnectedToByType2(grid: Grid, hex: Hex, label: number
         if (++count%500 === 0) {
             debugger
         }
-        const focusedHex = unSearchedHexes.shift() as Hex;
-        groupedHexes.push(focusedHex);
-        const isEvenX = focusedHex.x % 2 === 0;
-        const topCoords = { x: focusedHex.x, y: focusedHex.y - 1 };
-        const topLeftCoords = { x: focusedHex.x - 1, y: focusedHex.y - (isEvenX ? 1 : 0) };
-        const topRightCoords = { x: focusedHex.x + 1, y: focusedHex.y - (isEvenX ? 1 : 0) };
-        const bottomCoords = { x: focusedHex.x, y: focusedHex.y + 1 };
-        const bottomLeftCoords = { x: focusedHex.x - 1, y: focusedHex.y + (isEvenX ? 0 : 1) };
-        const bottomRightCoords = { x: focusedHex.x + 1, y: focusedHex.y + (isEvenX ? 0 : 1) };
-        const top = grid.hexes.flat().find(h => h.x === topCoords.x && h.y === topCoords.y) as Hex;
-        const topLeft = grid.hexes.flat().find(h => h.x === topLeftCoords.x && h.y === topLeftCoords.y) as Hex;
-        const topRight = grid.hexes.flat().find(h => h.x === topRightCoords.x && h.y === topRightCoords.y) as Hex;
-        const bottom = grid.hexes.flat().find(h => h.x === bottomCoords.x && h.y === bottomCoords.y) as Hex;
-        const bottomLeft = grid.hexes.flat().find(h => h.x === bottomLeftCoords.x && h.y === bottomLeftCoords.y) as Hex;
-        const bottomRight = grid.hexes.flat().find(h => h.x === bottomRightCoords.x && h.y === bottomRightCoords.y) as Hex;
-        const matchingSearches =  [top, topLeft, topRight, bottom, bottomLeft, bottomRight].filter(h => {
+        const hex = unSearchedHexes.shift() as Hex;
+        groupedHexes.push(hex);
+        const matchingSearches =  [
+            top(hex, grid),
+            topLeft(hex, grid),
+            topRight(hex, grid),
+            bottom(hex, grid),
+            bottomLeft(hex, grid),
+            bottomRight(hex, grid)
+        ].filter(h => {
             return !!h 
                 && h?.type === hex.type
                 && !groupedHexes.includes(h)
                 && !unSearchedHexes.includes(h)
         }) as Hex[];
         unSearchedHexes = unSearchedHexes.concat(matchingSearches);
-        // await (new Promise(resolve => setTimeout(resolve, 10))).then(() => focusedHex.color = label );
+        // await (new Promise(resolve => setTimeout(resolve, 10))).then(() => hex.color = label );
 
-        // console.log(`x: ${focusedHex.x} y: ${focusedHex.y}\n${unSearchedHexes.length}\n${groupedHexes.length}
+        // console.log(`x: ${hex.x} y: ${hex.y}\n${unSearchedHexes.length}\n${groupedHexes.length}
         //     topLeft(${JSON.stringify(topLeftCoords)}) (${!!topLeft}): ${matchingSearches.includes(topLeft)}
         //     top(${JSON.stringify(topCoords)}) (${!!top}): ${matchingSearches.includes(top)}
         //     topRight(${JSON.stringify(topRightCoords)}) (${!!topRight}): ${matchingSearches.includes(topRight)}
@@ -107,74 +102,25 @@ async function getAllHexesConnectedToByType2(grid: Grid, hex: Hex, label: number
         // `);
         // setTimeout(function(hex: Hex) {
         //     hex.gameObject?.setFillStyle(label);
-        // }, 50000, focusedHex);
+        // }, 50000, hex);
     }
     return groupedHexes;
 }
 
-
-/*
-    termination condition: if type != hex.type
-    well recurssion just isn't working for me
-*/
-function getAllHexesConnectedToByType(grid: Grid, x: number, y: number, type: HexType, connectedHexes: Hex[] = [], label: number): Hex[] {
-    try {
-        if (!inBounds(grid, x, y)) {
-            return []
+export function getRandomAttachedHexGroup(numHexes: number, startingHex: Hex, grid: Grid): Hex[] {
+    const attachedHexes = [startingHex];
+    while (numHexes > 0) {
+        const randomHexInGroup = attachedHexes[randomBetween(0, attachedHexes.length - 1)];
+        const attached = getRandomAttachedHexOfSameType(randomHexInGroup, grid);
+        if (!!attached) {
+            attachedHexes.push(attached);
+        } else {
+            continue;
         }
-        const hex = grid.hexes[y][x];
-        if (hex.type != type) {
-            return [];
-        }
-        if (connectedHexes.includes(hex)) {
-            return [];
-        }
-        connectedHexes.push(hex);
-        // mark
-        // const state.scene.cache.bitmapFont.add("font", Phaser.GameObjects.RetroFont.Parse(scene, config));
-        // const bitmaptext = state.scene.make.bitmapText({ font: "desyrel", text: label, size: 8 });
-        // const bitmaptext = state.scene.add.bitmapText(200, 100, 'desyrel', label,64);
-
-        /*
-                5,3 6,3 7,3
-                5,4 6,4 7,4
-                    6,5
-
-                    7,3
-                6,4 7,4 8,4
-                6,5 7,5 8,5
-
-                5,4 6,4 7,4
-                5,5 6,5 7,5
-                    6,6
-        */
-
-        // const bitmapmask = bitmaptext.createBitmapMask();
-        // hex.gameObject?.setMask(bitmapmask);
-        // hex.gameObject?.setFillStyle(label);
-        var topLeft = getAllHexesConnectedToByType(grid, x - 1, y - 1, type, connectedHexes, label);
-        var sometimesTopLeft = getAllHexesConnectedToByType(grid, x - 1, y - 1, type, connectedHexes, label);
-        var top = getAllHexesConnectedToByType(grid, x, y, type, connectedHexes, label);
-        var topRight = getAllHexesConnectedToByType(grid, x + 1, y - 1, type, connectedHexes, label);
-        var bottomRight = getAllHexesConnectedToByType(grid, x + 1, y, type, connectedHexes, label);
-        var sometimesBottomRight = getAllHexesConnectedToByType(grid, x + 1, y + 1, type, connectedHexes, label);
-        var bottom = getAllHexesConnectedToByType(grid, x, y + 1, type, connectedHexes, label);
-        var bottomLeft = getAllHexesConnectedToByType(grid, x - 1, y + 1, type, connectedHexes, label);
-        // console.log(`x: ${x} y: ${y},
-        //     topLeft (${topLeft.length}): ${JSON.stringify(topLeft.map(cg => [cg.x, cg.y]))}
-        //     top (${top.length}): ${JSON.stringify(top.map(cg => [cg.x, cg.y]))}
-        //     topRight (${topRight.length}): ${JSON.stringify(topRight.map(cg => [cg.x, cg.y]))}
-        //     bottomRight (${bottomRight.length}): ${JSON.stringify(bottomRight.map(cg => [cg.x, cg.y]))}
-        //     bottom (${bottom.length}): ${JSON.stringify(bottom.map(cg => [cg.x, cg.y]))}
-        //     bottomLeft (${bottomLeft.length}): ${JSON.stringify(bottomLeft.map(cg => [cg.x, cg.y]))}
-        // `);
-        var all = topLeft.concat(sometimesTopLeft).concat(top).concat(topRight).concat(bottomRight).concat(bottom).concat(bottomLeft).concat(sometimesBottomRight).concat([hex]);
-        return all;
-    } catch(e) {
-        console.log(`${x}, ${y}\n${e}`);
+        numHexes--;
     }
-    return [];
-}
+    return attachedHexes;
+};
 
 // export function const findHexSearchingInCircularPattern(grid: Grid, startX: number, startY: number, )
 

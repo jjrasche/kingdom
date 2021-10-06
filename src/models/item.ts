@@ -1,10 +1,15 @@
 export enum ItemType {
-    PineTree,
-    PalmTree,
-    SmallTower,
-    LargeTower,
-    Castle,
-    Village
+    castle,
+    grave,
+    house,
+    man0,
+    man1,
+    man2,
+    man3,
+    palm,
+    pine,
+    tower,
+    strongTower
 }
 
 export enum ItemClass {
@@ -12,6 +17,3 @@ export enum ItemClass {
     Defense,
     Tree
 }
-
-
- 
