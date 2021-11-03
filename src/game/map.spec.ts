@@ -4,6 +4,7 @@ import { Hex, HexType, sort2DHexArray, sortHexArray } from "../models/hex";
 import { State } from "../models/state";
 import { createRandomMap, getConectedHexGroupsByType } from "./map";
 import { Grid } from "../models/grid";
+import { Line } from "../models/line";
 
 const W = HexType.Water;
 const L = HexType.Land;
@@ -14,7 +15,7 @@ test('getConectedHexGroupsByType: when all hexes are land and connected, returns
         [L,L],
         [L,L]
     ]);
-    const result = (await getConectedHexGroupsByType(grid)).map(e => e.sort(sortHexArray)).sort(sort2DHexArray);
+    const result = (await getConectedHexGroupsByType(grid.hexes.flat())).map(e => e.sort(sortHexArray)).sort(sort2DHexArray);
     const expected = [grid.hexes.flat()].map(e => e.sort(sortHexArray)).sort(sort2DHexArray);
     expect(result).toEqual(expected);
 });
@@ -25,7 +26,7 @@ test('getConectedHexGroupsByType: when all hexes are connected and a single wate
         [L,L]
     ]);
     const expected = [grid.hexes.flat().filter(h => h.type === HexType.Land), [grid.hexes[0][1]]].map(e => e.sort(sortHexArray)).sort(sort2DHexArray);
-    const result = (await getConectedHexGroupsByType(grid)).map(e => e.sort(sortHexArray)).sort(sort2DHexArray);
+    const result = (await getConectedHexGroupsByType(grid.hexes.flat())).map(e => e.sort(sortHexArray)).sort(sort2DHexArray);
     expect(result).toEqual(expected);
 });
 
@@ -38,7 +39,7 @@ test('getConectedHexGroupsByType: when all hexes except one is water, returns 1 
         grid.hexes.flat().filter(h => h.type === HexType.Water),
         [grid.hexes[0][0]]
     ].map(e => e.sort(sortHexArray)).sort(sort2DHexArray);
-    const result = (await getConectedHexGroupsByType(grid)).map(e => e.sort(sortHexArray)).sort(sort2DHexArray);
+    const result = (await getConectedHexGroupsByType(grid.hexes.flat())).map(e => e.sort(sortHexArray)).sort(sort2DHexArray);
     expect(result).toEqual(expected);
 });
 
@@ -53,7 +54,7 @@ test('getConectedHexGroupsByType: when entire boundary is water, returns inner l
         grid.hexes.flat().filter(h => h.type === HexType.Water),
         grid.hexes.flat().filter(h => h.type === HexType.Land)
     ].map(e => e.sort(sortHexArray)).sort(sort2DHexArray);
-    const result = (await getConectedHexGroupsByType(grid)).map(e => e.sort(sortHexArray)).sort(sort2DHexArray);
+    const result = (await getConectedHexGroupsByType(grid.hexes.flat())).map(e => e.sort(sortHexArray)).sort(sort2DHexArray);
     expect(result).toEqual(expected);
 });
 
@@ -74,7 +75,7 @@ test('getConectedHexGroupsByType: when all but one hex is on continent, returns 
         grid.hexes.flat().filter(h => h.type === HexType.Water), 
         grid.hexes.flat().filter(h => h.type === HexType.Land).filter(h => h.x !== 0 && h.y !== 0)
     ].map(e => e.sort(sortHexArray)).sort(sort2DHexArray);
-    const result = (await getConectedHexGroupsByType(grid)).map(e => e.sort(sortHexArray)).sort(sort2DHexArray);
+    const result = (await getConectedHexGroupsByType(grid.hexes.flat())).map(e => e.sort(sortHexArray)).sort(sort2DHexArray);
     expect(result).toEqual(expected);
 });
 
@@ -90,9 +91,10 @@ test('getConectedHexGroupsByType: when two continents are the same size, returns
         grid.hexes.flat().filter(h => h.type === HexType.Water), 
         [grid.hexes[2][3], grid.hexes[3][3], grid.hexes[3][2]],     
     ].map(e => e.sort(sortHexArray)).sort(sort2DHexArray);
-    const result = (await getConectedHexGroupsByType(grid)).map(e => e.sort(sortHexArray)).sort(sort2DHexArray);
+    const result = (await getConectedHexGroupsByType(grid.hexes.flat())).map(e => e.sort(sortHexArray)).sort(sort2DHexArray);
     expect(result).toEqual(expected);
 });
+
 
 
 function setup(types: HexType[][]): Grid {

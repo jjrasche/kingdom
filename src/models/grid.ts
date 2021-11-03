@@ -1,8 +1,13 @@
 import { Hex, HexType } from "./hex";
+import { Player } from "./player";
+
+export const lineWidth = 1;
 
 export function inBounds(grid: Grid, x: number, y: number): boolean {
     return x >= 0 && x < grid.width && y >= 0 && y < grid.height;
 }
+
+export const DefaultLineColor = 0xefc53f;
 
 export class Grid {
     width: number;
@@ -13,7 +18,7 @@ export class Grid {
     longestDiagonal: number;
     connectedHexes?: Hex[][] = [];
 
-    constructor(width: number = 32, height: number = 18, hexSize: number = 20) {
+    constructor(width: number = 5, height: number = 5, hexSize: number = 20) {
         this.width = width;
         this.height = height;
         this.hexSize = hexSize;
@@ -45,4 +50,18 @@ export function getHexCoords(hexSize: number, longestDiagonal: number): number[]
 
 export function getLongestDiagonal(hexSize: number): number {
     return (4 * (hexSize / 2 / Math.sqrt(3)));
+}
+
+export function getSideLength(hexSize: number): number {
+    return hexSize * Math.tan(Math.PI / 6);
+}
+
+export function getSerializableMap(grid: Grid): Hex[][] {
+    return grid.hexes.map(row => {
+        return row.map(hex => new Hex(hex.position.x, hex.position.y, hex.type, hex.ownedBy, hex.discoveredBy, hex.visibleTo, hex.item));
+    });
+}
+
+export function getPlayerHexes(grid: Grid, player: Player): Hex[] {
+    return grid.hexes.flat().filter(hex => hex.ownedBy === player.id);
 }

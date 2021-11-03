@@ -7,13 +7,15 @@
 */
 import { Scene } from 'phaser';
 import { configObject, createControls } from './config';
-import { createRandomMap, getConectedHexGroupsByType } from './game/map';
+import { createRandomMap } from './game/map';
 import { initializePlayers } from './game/player';
 import { renderGameObjects, renderGrid } from './game/render';
-import { Grid } from './models/grid';
-import { HexType } from './models/hex';
+import  './models/colors';
 import { setCamera, State } from './models/state';
 import "./helpers/number";
+import "./extensions/array.extensions";
+import { testGrid } from './game/map.spec.data';
+import { Player } from './models/player';
 
 export let state: State = new State();
 
@@ -39,12 +41,16 @@ class PlayGame extends Scene {
     }
     async create(): Promise<void> {     
         state.scene = this;
-        await createRandomMap(state.grid);
+        // await createRandomMap(state.grid);
+        // testing
+        state.grid = testGrid;
+        state.players.push(new Player(0));
+
         renderGrid(state);
-        initializePlayers(state);
-        renderGameObjects(state);
+        // initializePlayers(state);
         setCamera(state);
-        this.controls = createControls(this);
+        this.controls = createControls(state);
+        renderGameObjects(state);
     }
     async update(time: number, deltaTime: number) {
         if (!!this.controls) {

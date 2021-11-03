@@ -1,4 +1,5 @@
 import { randomBetween } from "../helpers/number";
+import { setHexColor } from "../models/colors";
 import { getMainContinent } from "../models/grid";
 import { ItemType } from "../models/item";
 import { Player } from "../models/player";
@@ -6,19 +7,18 @@ import { State } from "../models/state";
 import { getRandomAttachedHexGroup } from "./map";
 
 export function initializePlayers(state: State) {
-    // create players
     const mainContinent = getMainContinent(state.grid)
-    for(var i = 0; i < 2; i++) {
+    for(var i = 0; i < 1; i++) {
         const player = new Player(i);
         state.players.push(player);
+        // pick random starting spot
         const startingHex = mainContinent[randomBetween(0, mainContinent.length - 1)];
         startingHex.item = ItemType.castle;
-
+        // create initial starting area
         const startingHexGroup = getRandomAttachedHexGroup(5, startingHex, state.grid);
         startingHexGroup.forEach(hex => {
             hex.ownedBy = i;
-            hex.color = player.color; 
+            setHexColor(hex, player.phaserColor); 
         });
     }
-    // pick a location, ensure they it's on contiguous land
 }
