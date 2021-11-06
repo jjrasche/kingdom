@@ -16,6 +16,7 @@ import "./helpers/number";
 import "./extensions/array.extensions";
 import { testGrid } from './game/map.spec.data';
 import { Player } from './models/player';
+import { ItemType } from './models/item';
 
 export let state: State = new State();
 
@@ -27,17 +28,17 @@ class PlayGame extends Scene {
     }
     preload(): void {
         this.load.bitmapFont('desyrel', 'assets/desyrel.png', 'assets/desyrel.xml');
-        this.load.image("castle", "assets/castle.png");
-        this.load.image("grave", "assets/grave.png");
-        this.load.image("house", "assets/house.png");
-        this.load.image("man0", "assets/man0.png");
-        this.load.image("man1", "assets/man1.png");
-        this.load.image("man2", "assets/man2.png");
-        this.load.image("man3", "assets/man3.png");
-        this.load.image("palm", "assets/palm.png");
-        this.load.image("pine", "assets/pine.png");
-        this.load.image("tower", "assets/tower.png");
-        this.load.image("strongTower", "assets/strong_tower.png");
+        this.load.image(ItemType[ItemType.Castle], "assets/castle.png");
+        this.load.image(ItemType[ItemType.Grave], "assets/grave.png");
+        this.load.image(ItemType[ItemType.House], "assets/house.png");
+        this.load.image(ItemType[ItemType.Man0], "assets/man0.png");
+        this.load.image(ItemType[ItemType.Man1], "assets/man1.png");
+        this.load.image(ItemType[ItemType.Man2], "assets/man2.png");
+        this.load.image(ItemType[ItemType.Man3], "assets/man3.png");
+        this.load.image(ItemType[ItemType.Palm], "assets/palm.png");
+        this.load.image(ItemType[ItemType.Pine], "assets/pine.png");
+        this.load.image(ItemType[ItemType.Tower], "assets/tower.png");
+        this.load.image(ItemType[ItemType.StrongTower], "assets/strong_tower.png");
     }
     async create(): Promise<void> {     
         state.scene = this;
@@ -45,6 +46,7 @@ class PlayGame extends Scene {
         // testing
         state.grid = testGrid;
         state.players.push(new Player(0));
+        state.currentPlayer = state.players[0];
 
         renderGrid(state);
         // initializePlayers(state);

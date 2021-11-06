@@ -1,4 +1,5 @@
 import { Scene } from "phaser";
+import { renderGameObjects } from "../game/render";
 import { Round } from "../game/round";
 import { getPlayerHexes, Grid } from "./grid";
 import { Hex } from "./hex";
@@ -13,14 +14,14 @@ export class State {
     currentPlayer: Player;
     lastClickedHex: Hex;
     highlightedHexes: Hex[];
-    rounds: Round[];
+    rounds: Round[] = [];
 }
 
 export function getActivePlayers(state: State): Player[] {
     return state.players
         .filter(player => {
             const playerHexes = getPlayerHexes(state.grid, player);
-            return !!playerHexes.find(hex => hex.item === ItemType.castle);
+            return !!playerHexes.find(hex => hex.item.type === ItemType.Castle);
         });
 }
 
@@ -31,4 +32,9 @@ export function setCamera(state: State) {
     state.scene.cameras.main.setBounds(-2 * state.grid.hexSize, -2 * state.grid.hexSize, cameraWidth, cameraHeight);
     state.scene.cameras.main.setZoom(2);
     state.scene.cameras.main.centerToBounds();
+}
+
+export function highlightHexes(state: State, hexes: Hex[]) {
+    state.highlightedHexes = hexes;
+    renderGameObjects(state);
 }

@@ -1,10 +1,8 @@
 import { getConectedHexGroups } from './game/map';
 import { renderGameObjects } from './game/render';
+import { executeRound } from './game/round';
 import { getPlayerHexes } from './models/grid';
-import { Hex } from './models/hex';
-import { PlaceableItemCursorMap, PlaceableItems } from './models/item';
-import { getExteiorLines } from './models/line';
-import { State } from './models/state';
+import { highlightHexes, State } from './models/state';
 // tslint:disable:no-string-literal
 
 
@@ -21,23 +19,34 @@ export const configObject: Phaser.Types.Core.GameConfig = {
 };
 
 export function createControls(state: State): Phaser.Cameras.Controls.SmoothedKeyControl {
-    // item selection setup
-    var iKey = state.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.I);
-    iKey.on('down', () => {
-        let currSelectedIndex = PlaceableItems.findIndex(item => item === state.selectedItemType);
-        const newItem = currSelectedIndex === -1 ? PlaceableItems[0] : currSelectedIndex === (PlaceableItems.length - 1) ? undefined : PlaceableItems[++currSelectedIndex];
-        state.selectedItemType = newItem;
+    setupRoundInteraction(state);
+    // setupItemInteraction(state);
+    // setupPlayerInteraction(state);
+    return setupKeyControls(state);
+};
 
-        if (newItem === undefined) {
-            state.scene.input.setDefaultCursor(`pointer`);
-        } else {
-            state.scene.input.setDefaultCursor(`url(assets/${PlaceableItemCursorMap[newItem]}), pointer`);
-        }
-        highlightActionableHexGroups(state);
-    });
+function setupRoundInteraction(state: State) {
+    var iKey = state.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+    iKey.on('down', () => executeRound(state));
+}
 
-    // player selection setup
-    state.currentPlayer = state.players[0];
+// function setupItemInteraction(state: State) {
+//     var iKey = state.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.I);
+//     iKey.on('down', () => {
+//         let currSelectedIndex = PlaceableItems.findIndex(item => item === state.selectedItemType);
+//         const newItem = currSelectedIndex === -1 ? PlaceableItems[0] : currSelectedIndex === (PlaceableItems.length - 1) ? undefined : PlaceableItems[++currSelectedIndex];
+//         state.selectedItemType = newItem;
+
+//         if (newItem === undefined) {
+//             state.scene.input.setDefaultCursor(`pointer`);
+//         } else {
+//             state.scene.input.setDefaultCursor(`url(assets/${PlaceableItemCursorMap[newItem]}), pointer`);
+//         }
+//         highlightActionableHexGroups(state);
+//     });
+// }
+
+function setupPlayerInteraction(state: State) {
     var pKey = state.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
     pKey.on('down', () => {
         let nextPlayerID = state.currentPlayer.id + 1;
@@ -47,7 +56,9 @@ export function createControls(state: State): Phaser.Cameras.Controls.SmoothedKe
         state.currentPlayer = state.players[nextPlayerID];
         highlightActionableHexGroups(state);
     });
+}
 
+function setupKeyControls(state: State): Phaser.Cameras.Controls.SmoothedKeyControl {
     const cursors = state.scene.input.keyboard.createCursorKeys()
     return new Phaser.Cameras.Controls.SmoothedKeyControl({
         camera: state.scene.cameras.main,
@@ -61,7 +72,7 @@ export function createControls(state: State): Phaser.Cameras.Controls.SmoothedKe
         drag: 0.0005,
         maxSpeed: 1.0
     });
-};
+}
 
 interface Point {
     x: number;
@@ -144,9 +155,6 @@ interface Line {
 async function highlightActionableHexGroups(state: State) {
     // get all currently owned groups
     const playerHexes = getPlayerHexes(state.grid, state.currentPlayer);
-    const playerLandGroups = await getConectedHexGroups(playerHexes);
-    
-    state.highlightedHexes = playerLandGroups.flat();
-
-    renderGameObjects(state);
+    const playerLandGroups = getConectedHexGroups(playerHexes);
+    highlightHexes(state, playerLandGroups.flat());
 }

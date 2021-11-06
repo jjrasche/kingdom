@@ -1,5 +1,5 @@
-import { getLighterPlayerColor, HexTypeColor, setHexColor } from "../models/colors";
-import { DefaultLineColor, lineWidth } from "../models/grid";
+import { getHexColor, getLighterHexColor, getLighterPlayerColor, HexTypeColor, setHexColor } from "../models/colors";
+import { DefaultAlpha, DefaultLineColor, HighlightedAlpha, lineWidth } from "../models/grid";
 import { ItemType } from "../models/item";
 import { State } from "../models/state";
 import { setMapInteraction } from "./map";
@@ -20,7 +20,7 @@ export function renderGrid(state: State) {
                 + (y * (lineWidth));                               // move down for every line width between row
 
             let hexColor = HexTypeColor[hex.type];
-            let hexGameObject = state.scene.add.polygon(hexX, hexY, state.grid.hexCoords, hexColor.color).setOrigin(0, 0);
+            let hexGameObject = state.scene.add.polygon(hexX, hexY, state.grid.hexCoords, hexColor.color, DefaultAlpha).setOrigin(0, 0);
             // Phaser.GameObjects.Polygon.GetPoints(hexGameObject);
             // Phaser.GameObjects.Polygon vs. Phaser.Geom.Polygon
             // var t = new Phaser.GameObjects.Line(state.scene, );
@@ -38,23 +38,26 @@ export function renderGameObjects(state: State) {
     for (let y: number = 0; y <= state.grid.height - 1; y++) {
         for (let x: number = 0; x <= state.grid.width - 1; x++) {
             const hex = state.grid.hexes[y][x];
+            if (hex.sprite != null) {
+                hex.sprite.destroy();
+            }
             if (hex.item != null) {
                 const center = hex.gameObject.getCenter();
                 const it = ItemType;
-                const sprite = state.scene.add.sprite(center.x, center.y, ItemType[hex.item]);
+                const sprite = state.scene.add.sprite(center.x, center.y, ItemType[hex.item.type]);
                 sprite.setDisplaySize(20, 20);
-                const mask = hex.gameObject.createBitmapMask(sprite);
-                hex.gameObject.setMask(mask);
-                hex.gameObject.clearMask();       
+                hex.sprite = sprite;
+                // const mask = hex.gameObject.createBitmapMask(sprite);
+                // hex.gameObject.setMask(mask);
+                // hex.gameObject.clearMask();       
             }
-            if (hex.ownedBy != null) {
-                setHexColor(hex, state.players[hex.ownedBy].phaserColor);
-            }
+            setHexColor(hex, getHexColor(hex, state));
         }
     }    
     // highlighted lines
-    const brighterColor = getLighterPlayerColor(state.currentPlayer, 20);
-    (state.highlightedHexes ?? []).forEach(hex => setHexColor(hex, brighterColor));
+    (state.highlightedHexes ?? []).forEach(hex => {
+        setHexColor(hex, getLighterHexColor(hex, state, 50));
+    });
 
 }
 

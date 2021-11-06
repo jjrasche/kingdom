@@ -1,7 +1,7 @@
 import { randomBetween } from "../helpers/number";
 import { getLighterHexColor, setHexColor } from "../models/colors";
 import { Grid } from "../models/grid";
-import { Hex, HexType, getRandomAttachedHexOfSameType, getAdjacentHexes, getPointsInGameSpace } from "../models/hex";
+import { Hex, HexType, getRandomAttachedHexOfSameType, getAdjacentHexes, getPointsInGameSpace, Position } from "../models/hex";
 import { State } from "../models/state";
 
 
@@ -22,11 +22,43 @@ export function getSpacesFromOutside(grid: Grid, x: number, y: number): number {
     return Math.min(verticalDistance, horizontalDistance)
 }
 
-export async function getConectedHexGroupsByType(hexes: Hex[]): Promise<Hex[][]> {
+export function getDistanceBetweenHexes(hex1: Hex, hex2: Hex): number {
+    const horizontalDistance = Math.abs(hex1.x - hex2.x);
+    const verticalDistance = Math.abs(hex1.y - hex2.y);
+    const diagonalDistance = Math.abs( (-hex1.x + -hex1.y) - (-hex2.x + -hex2.y));
+    return Math.max(horizontalDistance, verticalDistance, diagonalDistance);
+}
+
+export function breadthFirstSearch(hex1: Hex, hex2: Hex, map: Hex[]): number {
+    const frontier = [hex1];
+    const cameFrom: { [key: string]: string } = { };
+    while (frontier.length > 0) {
+        const curr = frontier.pop() as Hex;
+        const neighbors = getAdjacentHexes(curr, map);
+        neighbors.forEach(neighbor => {
+            if (!cameFrom[neighbor.toString()]) {
+                frontier.unshift(neighbor);
+                cameFrom[neighbor.toString()] = curr.toString();
+            }
+        });
+    }
+    
+    let distance = 0;
+    let hexString = hex2.toString();
+    while (hexString != hex1.toString()) {
+        const newHexString = cameFrom[hexString];
+        hexString = newHexString;
+        distance++;
+    }
+    return distance;
+}
+
+
+export function getConectedHexGroupsByType(hexes: Hex[]): Hex[][] {
     return getConectedHexGroups(hexes, (hex: Hex, compareHex: Hex) => hex.type === compareHex.type);
 }
 
-export async function getConectedHexGroups(hexes: Hex[], inGroupMethod?: (hex: Hex, compareHex: Hex) => boolean): Promise<Hex[][]> {
+export function getConectedHexGroups(hexes: Hex[], inGroupMethod?: (hex: Hex, compareHex: Hex) => boolean): Hex[][] {
     let groups: Hex[][] = [];
     const hex = []
     while (groups.flat().length < hexes.length) {
@@ -36,13 +68,13 @@ export async function getConectedHexGroups(hexes: Hex[], inGroupMethod?: (hex: H
             continue;
         }
         hex.push(ungroupedHex);
-        const connectedGroup = await getConnectedHexes(ungroupedHex, hexes, inGroupMethod);
+        const connectedGroup = getConnectedHexes(ungroupedHex, hexes, inGroupMethod);
         groups.push(connectedGroup);
     }
     return groups;
 }
 
-async function getConnectedHexes(hex: Hex, hexes: Hex[], inGroupMethod?: (hex: Hex, compareHex: Hex) => boolean, label?: number): Promise<Hex[]> {
+function getConnectedHexes(hex: Hex, hexes: Hex[], inGroupMethod?: (hex: Hex, compareHex: Hex) => boolean, label?: number): Hex[] {
     let unSearchedHexes: Hex[] = [];
     let groupedHexes: Hex[] = [];
     unSearchedHexes.push(hex);

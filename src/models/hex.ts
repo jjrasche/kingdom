@@ -1,9 +1,8 @@
 import { randomBetween } from "../helpers/number";
-import { Grid, lineWidth } from "./grid";
-import { ItemType } from "./item";
+import { lineWidth } from "./grid";
+import { Item, Items, ItemType } from "./item";
 import { Line, Point } from "./line";
 import { Player } from "./player";
-import { State } from "./state";
 
 export const top = (hex: Hex, hexes: Hex[]): Hex | undefined => hexes.find(h => h.x === hex.x && h.y === hex.y - 1);
 export const topLeft = (hex: Hex, hexes: Hex[]): Hex | undefined => hexes.find(h => h.x === hex.x - 1 && h.y === hex.y - (hex.x % 2 === 0 ? 1 : 0));
@@ -36,6 +35,16 @@ export const getAdjacentHexes = (hex: Hex, hexes: Hex[]): Hex[] => {
     ].filter(hex => !!hex) as Hex[];
 }
 
+export function getPlayerHexesAndAdjacent(playerHexes: Hex[], allHexes: Hex[]): Hex[] {
+    const playerAndAdjacentHexes: Hex[] = [];
+    playerHexes.forEach(hex => {
+        getAdjacentHexes(hex, allHexes)
+            .filter(hex => !playerAndAdjacentHexes.includes(hex))
+            .forEach(hex => playerAndAdjacentHexes.push(hex));
+    });
+    return playerAndAdjacentHexes;
+}
+
 export function isOwnedByPlayer(hex: Hex, player: Player): boolean {
     return player.id === hex.ownedBy;
 }
@@ -51,17 +60,41 @@ export class Hex {
     discoveredBy: number[] = [];
     visibleTo: number[] = [];
     ownedBy: number;
-    item: ItemType;
+    itemType: ItemType;
+    item: Item;
     gameObject: Phaser.GameObjects.Polygon;
+    sprite?: Phaser.GameObjects.Sprite;
 
-    constructor(x: number, y: number, type: HexType, ownedBy?: number, discoveredBy: number[] = [], visibleTo: number[] = [], item?: ItemType) {
+    constructor(x: number, y: number, type: HexType, ownedBy?: number, itemType?: ItemType, discoveredBy: number[] = [], visibleTo: number[] = []) {
         this.position = new Position(x, y);
         this.type = type;
         this.discoveredBy = discoveredBy;
         this.visibleTo = visibleTo;
         this.ownedBy = ownedBy!;
-        this.item = item!;
+        this.itemType = itemType!;
+        this.item = Items[this.itemType];
     }
+
+    get x(): number {
+        return this.position.x;
+    }
+
+    get y(): number {
+        return this.position.y;
+    }
+
+    equals(comp: Hex): boolean {
+        return this.position == comp.position;
+    }
+
+    hash(): number {
+        return this.position.hash();
+    }
+
+    toString(): string {
+        return this.position.toString();
+    }
+
 }
 
 export class Position {
@@ -70,6 +103,18 @@ export class Position {
     constructor(x: number, y: number) {
         this.x = x;
         this.y = y;
+    }
+    
+    equals(comp: Position): boolean {
+        return this.x === comp.x && this.y === comp.y;
+    }
+
+    hash(): number {
+        return (this.x + 7) * (this.y + 11) 
+    }
+
+    toString(): string {
+        return `(${this.x.toString()}, ${this.y.toString()})`;
     }
 }
 

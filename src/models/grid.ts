@@ -1,4 +1,4 @@
-import { Hex, HexType } from "./hex";
+import { Hex, HexType, Position } from "./hex";
 import { Player } from "./player";
 
 export const lineWidth = 1;
@@ -8,6 +8,9 @@ export function inBounds(grid: Grid, x: number, y: number): boolean {
 }
 
 export const DefaultLineColor = 0xefc53f;
+export const HighlightLineColor = 0xFF00FF;
+export const DefaultAlpha = .9;
+export const HighlightedAlpha = 1;
 
 export class Grid {
     width: number;
@@ -56,12 +59,17 @@ export function getSideLength(hexSize: number): number {
     return hexSize * Math.tan(Math.PI / 6);
 }
 
-export function getSerializableMap(grid: Grid): Hex[][] {
+export function getSerializableMap(grid: Grid): any[][] {
     return grid.hexes.map(row => {
-        return row.map(hex => new Hex(hex.position.x, hex.position.y, hex.type, hex.ownedBy, hex.discoveredBy, hex.visibleTo, hex.item));
+        // todo: need to simplify
+        return row.map(hex => ({ x: hex.x, y: hex.y, type: hex.type, ownedBy: hex.ownedBy, item: hex.itemType, discoveredBy: hex.discoveredBy, visibleTo: hex.visibleTo}));
     });
 }
 
+export function flatMap(grid: Grid): Hex[] {
+    return grid.hexes.flat();
+}
+
 export function getPlayerHexes(grid: Grid, player: Player): Hex[] {
-    return grid.hexes.flat().filter(hex => hex.ownedBy === player.id);
+    return flatMap(grid).filter(hex => hex.ownedBy === player.id);
 }

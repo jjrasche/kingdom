@@ -1,4 +1,4 @@
-import { Strategy } from "../game/strategy";
+import { Strategy, RandomStrategy } from "../game/strategy";
 import { PlayerColors } from "./colors";
 
 export enum PlayerType {
@@ -14,9 +14,10 @@ export class Player {
     phaserColor: Phaser.Display.Color;
     alive = true;
 
-    constructor(id: number, type: PlayerType = PlayerType.NPC, strat) {
+    constructor(id: number, type: PlayerType = PlayerType.NPC) {
         this.id = id;
         this.type = type;
         this.phaserColor = PlayerColors[id];
+        this.strategy = new RandomStrategy();
     }
 }

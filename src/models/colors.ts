@@ -1,3 +1,4 @@
+import { DefaultAlpha } from "./grid";
 import { Hex, HexType } from "./hex";
 import { Player } from "./player";
 import { State } from "./state";
@@ -28,16 +29,19 @@ export const HexTypeColor: {[key in HexType]: Phaser.Display.Color } = {
 
 export const PlayerColors = [Maroon, Olive, Teal, Navy, Purple];
 
-export function setHexColor(hex: Hex, color: Phaser.Display.Color) {
+export function setHexColor(hex: Hex, color: Phaser.Display.Color, alpha: number = DefaultAlpha) {
     const prevHexFill = hex.gameObject.fillColor;
     const colorNumber = color instanceof Phaser.Display.Color ? color.color : color;
-    hex.gameObject.setFillStyle(colorNumber);
+    hex.gameObject.setFillStyle(colorNumber, alpha);
     // console.log("rgba: " + (color as Phaser.Display.Color).rgba + "\tcolor: " + colorNumber + "\tprev: " + prevHexFill + "\tcurr: " + hex.gameObject.fillColor);
 }
 
+export function getHexColor(hex: Hex, state: State): Phaser.Display.Color {
+    return hex.ownedBy == null ? HexTypeColor[hex.type] : state.players[hex.ownedBy].phaserColor;
+}
+
 export function getLighterHexColor(hex: Hex, state: State, percent: number): Phaser.Display.Color {
-    const color = hex.ownedBy == null ? HexTypeColor[hex.type] : state.players[hex.ownedBy].phaserColor;
-    return getLighterColor(color, percent);
+    return getLighterColor(getHexColor(hex, state), percent);
 }
 
 export function getLighterPlayerColor(player: Player, percent: number): Phaser.Display.Color {
@@ -47,5 +51,5 @@ export function getLighterPlayerColor(player: Player, percent: number): Phaser.D
 export function getLighterColor(color: Phaser.Display.Color, percent: number): Phaser.Display.Color {
     const copy = Phaser.Display.Color.RGBStringToColor(color.rgba);
     // console.log("before: " + (color as Phaser.Display.Color).rgba);
-    return copy.brighten(percent);
+    return copy.lighten(percent);
 }

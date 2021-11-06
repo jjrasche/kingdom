@@ -1,24 +1,32 @@
-import { Action, Turn } from "./round";
+import { getCurrentPlayerItemHexes } from "../models/item";
+import { State } from "../models/state";
+import { Action, getAllPlaceableItemPlacements, getHexItemMoves } from "./action";
+import { Turn } from "./round";
 
 /*
     given a Turn will make moves
 */
 export abstract class Strategy {
     // make moves until no additional moves possible
-    takeTurn(turn: Turn) {
-        while 
-    }
-
-    abstract makeMove(turn: Turn): Action;
+    abstract takeTurn(state: State, turn: Turn): void
 }
 
 
-export class StrategyRandom extends Strategy {
-    /*
-        TODO:
-        - build getAllMoves(turn: Turn) => Moves
-    */
-    makeMove(turn: Turn): Action {
-        return {} as Action;
+export class RandomStrategy extends Strategy {
+    takeTurn(state: State, turn: Turn) {
+        // move every movable item randomly
+        const playerItemHexes = getCurrentPlayerItemHexes(state);
+        playerItemHexes.forEach(itemHex => {
+            const moves = getHexItemMoves(itemHex, state);
+            const move = moves.random();
+            console.log(move.toString());
+            move.take(state);
+        });
+     
+        // make one placement if one is possible
+        const placements = getAllPlaceableItemPlacements(state);
+        const place = placements.random();
+        console.log(place.toString());
+        place.take(state);
     }
 }

@@ -13,7 +13,7 @@ export function initializePlayers(state: State) {
         state.players.push(player);
         // pick random starting spot
         const startingHex = mainContinent[randomBetween(0, mainContinent.length - 1)];
-        startingHex.item = ItemType.castle;
+        startingHex.itemType = ItemType.Castle;
         // create initial starting area
         const startingHexGroup = getRandomAttachedHexGroup(5, startingHex, state.grid);
         startingHexGroup.forEach(hex => {
