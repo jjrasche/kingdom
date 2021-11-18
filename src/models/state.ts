@@ -21,7 +21,11 @@ export function getActivePlayers(state: State): Player[] {
     return state.players
         .filter(player => {
             const playerHexes = getPlayerHexes(state.grid, player);
-            return !!playerHexes.find(hex => hex.item.type === ItemType.Castle);
+            try {
+                return !!playerHexes.find(hex => hex?.item?.type === ItemType.Castle);
+            } catch (e) {
+                console.log(e);
+            }
         });
 }
 

@@ -37,8 +37,8 @@ class PlayGame extends Scene {
         this.load.image(ItemType[ItemType.Man3], "assets/man3.png");
         this.load.image(ItemType[ItemType.Palm], "assets/palm.png");
         this.load.image(ItemType[ItemType.Pine], "assets/pine.png");
-        this.load.image(ItemType[ItemType.Tower], "assets/tower.png");
-        this.load.image(ItemType[ItemType.StrongTower], "assets/strong_tower.png");
+        this.load.image(ItemType[ItemType.Tower1], "assets/tower.png");
+        this.load.image(ItemType[ItemType.Tower2], "assets/strong_tower.png");
     }
     async create(): Promise<void> {     
         state.scene = this;

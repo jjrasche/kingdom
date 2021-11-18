@@ -1,4 +1,4 @@
-import { getCurrentPlayerItemHexes } from "../models/item";
+import { getCurrentPlayerItemHexes, ItemType } from "../models/item";
 import { State } from "../models/state";
 import { Action, getAllPlaceableItemPlacements, getHexItemMoves } from "./action";
 import { Turn } from "./round";
@@ -19,14 +19,20 @@ export class RandomStrategy extends Strategy {
         playerItemHexes.forEach(itemHex => {
             const moves = getHexItemMoves(itemHex, state);
             const move = moves.random();
-            console.log(move.toString());
-            move.take(state);
+            if (!!move) {
+                console.log(move.toString());
+                move.take(state);
+            }
         });
      
         // make one placement if one is possible
         const placements = getAllPlaceableItemPlacements(state);
+        const ptypes = placements.map(p => ItemType[p.item.type]);
         const place = placements.random();
-        console.log(place.toString());
-        place.take(state);
+        if (!!place) {
+            console.log(place.toString());
+            place.take(state);
+        }
+        console.log("-------------------------------------");
     }
 }

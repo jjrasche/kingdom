@@ -15,8 +15,8 @@ export enum ItemType {
     Man3,
     Palm,
     Pine,
-    Tower,
-    StrongTower
+    Tower1,
+    Tower2
 }
 
 export const PlaceableItemCursorMap: {[key: number]: string } = {
@@ -25,8 +25,8 @@ export const PlaceableItemCursorMap: {[key: number]: string } = {
     [ItemType.Man1]: "man1_cur.png",
     [ItemType.Man2]: "man2_cur.png",
     [ItemType.Man3]: "man3_cur.png",
-    [ItemType.Tower]: "tower_cur.png",
-    [ItemType.StrongTower]: "strong_tower_cur.png",
+    [ItemType.Tower1]: "tower_cur.png",
+    [ItemType.Tower2]: "strong_tower_cur.png",
 }
 
 export const canPlaceItem = (type: ItemType) => !!PlaceableItems[type]
@@ -68,22 +68,28 @@ const withinRange = (a: RestrictionArgs) => {
     if (a.actionType === ActionType.Move) {
         const distance = breadthFirstSearch(a.hex, a.newHex, a.map);
         // console.log(`(${a.hex.x}, ${a.hex.y}) is ${distance} away from (${a.newHex.x}, ${a.newHex.y})`)
-        return distance < (a.hex.item.movement ?? 0);
+        return a.hex.position != a.newHex.position && distance < (a.hex.item.movement ?? 0);
     }
-    return false
+    return true;
 }
 const noExistingItem = (a: RestrictionArgs) => a.newHex.item == null;
-const noItemOrCanImproveUnit = (a: RestrictionArgs) => {
-    if (noExistingItem(a)) {
-        return true
+const noItemOrCanImproveUnit = (a: RestrictionArgs) => noExistingItem(a) ||  canImproveUnit(a.item, a.newHex.item);
+const noItemOrCanImproveDefense = (a: RestrictionArgs) => noExistingItem(a) || canImproveDefense(a.item, a.newHex.item, );
+
+export function canImproveUnit (newItem: Item, existingItem: Item): number | null {
+    try {
+    const newProposedAttackStrength = (newItem.attack ?? 0) + (existingItem?.attack ?? 0);
+    const maxAttackStrength = (Items[ItemType.Man3].attack  ?? 0);
+    return (existingItem?.class === ItemClass.Unit && (newProposedAttackStrength <= maxAttackStrength)) ? newProposedAttackStrength : null;
+    } catch (e) {
+        const t = 5;
+        return null;
     }
-    return a.newHex.item.class === ItemClass.Unit && ((a.item.attack ?? 0) + (a.newHex.item.attack ?? 0) <= (Items[ItemType.Man3].attack  ?? 0));
 }
-const noItemOrCanImproveDefense = (a: RestrictionArgs) => {
-    if (noExistingItem(a)) {
-        return true
-    }
-    return a.newHex.item.class === ItemClass.Defense && ((a.newHex.item.defense ?? 0) < (a.item.defense ?? 0));
+export function canImproveDefense(newItem: Item, existingItem: Item): number | null {
+    const newProposedAttackDefense = (newItem?.defense ?? 0) + (existingItem?.defense ?? 0);
+    const maxDefenseStrength = (Items[ItemType.Tower2].defense  ?? 0);
+    return (existingItem?.class === ItemClass.Defense && (newProposedAttackDefense <= maxDefenseStrength)) ? newProposedAttackDefense : null;
 }
 /*
     unsure how to codify an AoE without large compute load
@@ -105,8 +111,8 @@ export const Man1 =  { type: ItemType.Man1, class: ItemClass.Unit, buildCost: 20
 export const Man2 =  { type: ItemType.Man2, class: ItemClass.Unit, buildCost: 30, attack: 3, defense: 3, movement: 5, hexRestrictions: [isLand, withinRange, canAfford, noItemOrCanImproveUnit]  } as Item;
 export const Man3 =  { type: ItemType.Man3, class: ItemClass.Unit, buildCost: 40, attack: 4, defense: 4, movement: 5, hexRestrictions: [isLand, withinRange, canAfford, noItemOrCanImproveUnit]  } as Item;
 export const House =  { type: ItemType.House, class: ItemClass.Resource, buildCost: 10, captureReward: 10, hexRestrictions: [isLand, owned, canAfford, noExistingItem]  } as Item;
-export const Tower =  { type: ItemType.Tower, class: ItemClass.Defense, buildCost: 15, captureReward: 10, defense: 2, hexRestrictions: [isLand, owned, canAfford, noItemOrCanImproveDefense]  } as Item;
-export const StrongTower =  { type: ItemType.StrongTower, class: ItemClass.Defense, buildCost: 35, captureReward: 25, defense: 3, hexRestrictions: [isLand, owned, canAfford, noItemOrCanImproveDefense]  } as Item;
+export const Tower1 =  { type: ItemType.Tower1, class: ItemClass.Defense, buildCost: 10, captureReward: 5, defense: 1, hexRestrictions: [isLand, owned, canAfford, noItemOrCanImproveDefense]  } as Item;
+export const Tower2 =  { type: ItemType.Tower2, class: ItemClass.Defense, buildCost: 15, captureReward: 15, defense: 2, hexRestrictions: [isLand, owned, canAfford, noItemOrCanImproveDefense]  } as Item;
 
 export const Items: { [key in ItemType]: Item} = {
     [ItemType.Castle]: Castle,
@@ -118,8 +124,8 @@ export const Items: { [key in ItemType]: Item} = {
     [ItemType.Man2]: Man2,
     [ItemType.Man3]: Man3,
     [ItemType.House]: House,
-    [ItemType.Tower]: Tower,
-    [ItemType.StrongTower]: StrongTower
+    [ItemType.Tower1]: Tower1,
+    [ItemType.Tower2]: Tower2
 };
 
 export const hexHasMovableItem = (hex: Hex) => hex.item != null && hex.item.class == ItemClass.Unit;
@@ -127,6 +133,26 @@ export const hexHasMovableItem = (hex: Hex) => hex.item != null && hex.item.clas
 export function getCurrentPlayerItemHexes(state: State): Hex[] {
     return getPlayerHexes(state.grid, state.currentPlayer)
         .filter(hex => hexHasMovableItem(hex));
+}
+
+const getItem = (selector: (item: Item) => boolean): Item | undefined =>  {
+    for (const itemType in ItemType) {
+        const item = Items[ItemType[itemType as keyof typeof ItemType]];
+        if (selector(item)) {
+            return item;
+        }
+    }
+}
+
+export function getImprovedItem(existingItem: Item, newItem: Item): Item | undefined {
+    const newDefenseStrength = canImproveDefense(existingItem, newItem)
+    if (newDefenseStrength != null) {
+        return getItem((item: Item) => item?.defense === newDefenseStrength);
+    }
+    const newAttackStrength = canImproveUnit(existingItem, newItem)
+    if (newAttackStrength != null) {
+        return getItem((item: Item) => item?.attack === newAttackStrength);
+    }
 }
 
 
