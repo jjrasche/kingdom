@@ -8,30 +8,28 @@ import { Turn } from "./round";
 */
 export abstract class Strategy {
     // make moves until no additional moves possible
-    abstract takeTurn(state: State, turn: Turn): void
+    abstract takeTurn(state: State, turn: Turn): Promise<void>
 }
 
 
 export class RandomStrategy extends Strategy {
-    takeTurn(state: State, turn: Turn) {
+    async takeTurn(state: State, turn: Turn) {
         // move every movable item randomly
         const playerItemHexes = getCurrentPlayerItemHexes(state);
-        playerItemHexes.forEach(itemHex => {
-            const moves = getHexItemMoves(itemHex, state);
+        for (let i = 0; i < playerItemHexes.length; i++) {
+            const moves = getHexItemMoves(playerItemHexes[i], state);
             const move = moves.random();
             if (!!move) {
-                console.log(move.toString());
-                move.take(state);
+                await move.take(state);
             }
-        });
-     
+        }
+
         // make one placement if one is possible
         const placements = getAllPlaceableItemPlacements(state);
         const ptypes = placements.map(p => ItemType[p.item.type]);
         const place = placements.random();
         if (!!place) {
-            console.log(place.toString());
-            place.take(state);
+            await place.take(state);
         }
         console.log("-------------------------------------");
     }

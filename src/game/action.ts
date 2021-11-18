@@ -31,7 +31,7 @@ export class Action {
         - if movement then empty start hex
         - apply improvement
     */
-    take(state: State) {
+    async take(state: State) {
         if (this.type === ActionType.Place) {
             state.currentPlayer.money -= this.cost;
         } else {
@@ -44,6 +44,8 @@ export class Action {
         state.grid.hexes[this.end.y][this.end.x].ownedBy = state.currentPlayer.id;
 
         renderGameObjects(state);
+        await new Promise(resolve => setTimeout(resolve, 300));
+        console.log(this.toString());
     }
 
     toString(): string {
@@ -77,7 +79,7 @@ export function getHexItemMoves(hex: Hex, state: State): Action[] {
     const moves = playerAndAdjacentHexes
         .filter(newHex => canPlaceOnHex(hex, newHex, state.currentPlayer, playerAndAdjacentHexes))
         .map(newHex => new Action(hex.item, newHex.position, hex.position));
-    moves.forEach(m => console.log(`\t${m}`));
+    // moves.forEach(m => console.log(`\t${m}`));
     return moves;
 }
 
@@ -96,12 +98,15 @@ export function getAllPossiblePlacementsForItem(type: ItemType, player: Player, 
     const placements = playerAndAdjacentHexes
         .filter(newHex => canPlaceOnHex(item, newHex, player, playerAndAdjacentHexes))
         .map(newHex => new Action(item, newHex.position, item.buildCost as number));//{ item, cost: item.buildCost, position: newHex.position }));
-    placements.forEach(p => console.log(`\t${p}`));
+    // placements.forEach(p => console.log(`\t${p}`));
     return placements;
 }
 
 function canPlaceOnHex(curr: Item | Hex, newHex: Hex, player: Player, playerAndAdjacentHexes: Hex[]) {
     const item = curr instanceof  Hex ? curr.item : curr;
+    if (!item) {
+        return false;
+    }
     return item.hexRestrictions.reduce((acc, restriction) => {
         try {
             const restrictionPassed = restriction(new RestrictionArgs(curr, newHex, player, playerAndAdjacentHexes));

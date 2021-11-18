@@ -27,25 +27,26 @@ export interface Turn {
     endMap: Hex[][];
 }
 
-export function executeRound(state: State) {
+export async function executeRound(state: State) {
     const round = {
         num: state.rounds.length + 1,
         players: getActivePlayers(state)
     } as Round;
 
-    round.players.forEach(player => {
+    for (let i = 0; i < round.players.length; i++) {
+        const player = round.players[i];
         state.currentPlayer = player;
         const turn = {
             startMap: getSerializableMap(state.grid),
             startingMoney: player.money
             // moves
         } as Turn;
-        player.strategy.takeTurn(state, turn);
+        await player.strategy.takeTurn(state, turn);
         turn.endingMoney = player.money;
         turn.endMap = getSerializableMap(state.grid);
         // debugPlaceSpace(state, getAllPlaceableItemPlacements(state));
         // debugMoveSpace(state, getAllPosibbleMoves(state));
-    })
+    }
 }
 
 function debugMoveSpace(state: State, actionSpace: Action[]) {
